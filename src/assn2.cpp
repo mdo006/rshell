@@ -106,12 +106,6 @@ void parse (vector<string> &input)
 	valid = execute(reverse_input.at(size - 1));
 	reverse_input.pop_back();
 	
-	//check if exit command is first
-	if (input.at(0) == "exit")
-	{
-		exit(0); //exit program
-	}
-	
 	//parse this vector and execute accordingly
 	for (int i = reverse_input.size() - 1; i > -1; i = i - 2)
 	{
