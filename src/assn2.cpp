@@ -11,7 +11,7 @@
 
 using namespace std;
 
-void execute (string &pass, int &valid)
+bool execute (string &pass)
 {
 	char* test[80];
 	//valid = 1;
@@ -19,6 +19,7 @@ void execute (string &pass, int &valid)
 	string temp="";
 	int j = 0;
 	int i = 0;
+	
 	while(i < pass.size())
 	{
 		for(j = i ; j < pass.size(); ++j)
@@ -34,6 +35,7 @@ void execute (string &pass, int &valid)
 				temp = temp + pass.at(j);
 			}
 		}
+		
 		if(temp == "exit")
 		{
 			cout << "exiting!" << endl;
@@ -44,12 +46,15 @@ void execute (string &pass, int &valid)
 		//so we can start basing on where we left off in pass string
 		i = j; 
 	}
+	
 	int k = 0;
+	
 	for(; k < command.size() ;++k)
     {
     	string temp_str = command.at(k);
         test[k] = (char*)temp_str.c_str();
     }
+    
     test[k] = '\0';
     
 	pid_t pid = fork();
@@ -59,22 +64,24 @@ void execute (string &pass, int &valid)
         if(wait(0) == -1)
         {
         	perror("wait");
-            valid = 0;
+            return false;
         }
     }
+    
     if(pid == 0)
     {
         if(execvp(test[0],test) == -1)
         {
         	perror("exec");
-        	valid = 0;
+        	return false;
         }
     }
 	
 	command.clear();
+	return true;
 }
 
-void parse (vector<string> &input, int &valid)
+void parse (vector<string> &input)
 {
 	vector<string> reverse_input;
 	
@@ -90,54 +97,60 @@ void parse (vector<string> &input, int &valid)
 	other command after the connector*/
 	if (reverse_input.size() == 1 || reverse_input.size() == 2) 
 	{
-		execute(reverse_input.at(0), valid);
-		exit(0);
+		execute(reverse_input.at(0));
+	}
+	
+	//execute 1st command;
+	bool  valid;
+	int size = reverse_input.size();
+	valid = execute(reverse_input.at(size - 1));
+	reverse_input.pop_back();
+	
+	//check if exit command is first
+	if (input.at(0) == "exit")
+	{
+		exit(0); //exit program
 	}
 	
 	//parse this vector and execute accordingly
-	for (int i = reverse_input.size() - 1; i >= 0; i = i - 4)
+	for (int i = reverse_input.size() - 1; i > -1; i = i - 2)
 	{
-		//check if exit command is first
-		if (reverse_input.at(0) == "exit")
+		if (reverse_input.at(i) == ";")
 		{
-			exit(0); //exit program
-		}
-	
-		//execute first command
-		execute(reverse_input.at(i), valid);
-			
-		if (reverse_input.at(i - 1) == ";")
-		{
-			if (valid == 1)
+			if (valid == true)
 			{
-				execute(reverse_input.at(i - 2), valid);
-				reverse_input.pop_back();
+				//always execute a command that follows a semicolon
+				execute(reverse_input.at(i - 1));
 				reverse_input.pop_back();
 				reverse_input.pop_back();
 			}
 					
 		}
-		else if (reverse_input.at(i - 1) == "&&")
+		else if (reverse_input.at(i) == "&&")
 		{
-			if (valid == 1) //1st command executed properly
+			if (valid == true) //1st command executed properly
 			{
 				//execute 2nd command
 				// cout << "failed" << endl;
-				execute(reverse_input.at(i - 2), valid);
+				execute(reverse_input.at(i - 1));
 			}
-				
-			reverse_input.pop_back();
+			
+			//if the 1st command is NOT valid, we do NOT want to execute the 2nd one
+			/*whether we execute or not, we still want to pop_back() 3 times to
+			  move to the next command*/
 			reverse_input.pop_back();
 			reverse_input.pop_back();
 		}
-		else if (reverse_input.at(i - 1) == "||")
+		else if (reverse_input.at(i) == "||")
 		{
-			if (valid == 0) //1st command did not execute 
+			if (valid == false) //1st command did not execute 
 			{
-				execute(reverse_input.at(i - 2), valid);
+				execute(reverse_input.at(i - 1));
 			}
-				
-			reverse_input.pop_back();
+			
+			//if the 1st command is VALID, we do NOT want to execute the 2nd one
+			/*whether we execute or not, we still want to pop_back() 3 times to
+			  move to the next command*/	
 			reverse_input.pop_back();
 			reverse_input.pop_back();
 		}
@@ -256,8 +269,7 @@ int main()
 		input.push_back(vector_tokens_str.at(size - 1));
 		
 		//run execute on commands
-		int valid = 1;
-		parse(input, valid);
+		parse(input);
 	}
 	
 	return 0;
