@@ -59,22 +59,31 @@ bool execute (string &pass)
     
 	pid_t pid = fork();
 	// after fork(), if the pid comes out as -1 , then our command is valid.
-    if(pid > 0)
-    {
-        if(wait(0) == -1)
-        {
-        	perror("wait");
-            return false;
-        }
-    }
+    //if(pid > 0)
+    //{
+        // if(wait(0) == -1)
+        // {
+        // 	perror("wait");
+        // 	command.clear();
+        //     return false;
+        // }
+    //}
     
     if(pid == 0)
     {
         if(execvp(test[0],test) == -1)
         {
         	perror("exec");
+        	command.clear();
         	return false;
         }
+    }
+    
+    if(wait(0) == -1)
+    {
+        perror("wait");
+        command.clear();
+        return false;
     }
 	
 	command.clear();
@@ -90,14 +99,6 @@ void parse (vector<string> &input)
 	for (int i = input.size() - 1; i >= 0; --i)
 	{
 		reverse_input.push_back(input.at(i));
-	}
-	
-	//only one command
-	/*if size is 2, that means there is a command and one connector but no 
-	other command after the connector*/
-	if (reverse_input.size() == 1 || reverse_input.size() == 2) 
-	{
-		execute(reverse_input.at(0));
 	}
 	
 	//execute 1st command;
