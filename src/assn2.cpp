@@ -43,6 +43,7 @@ bool execute (string &pass)
 		}
 		command.push_back(temp);
 		temp.clear();
+		
 		//so we can start basing on where we left off in pass string
 		i = j; 
 	}
@@ -101,6 +102,13 @@ void parse (vector<string> &input)
 		reverse_input.push_back(input.at(i));
 	}
 	
+	//check if the 1st command is exit
+	//if it is, exit the program
+	if (input.at(0) == "exit")
+	{
+		exit(0);
+	}
+	
 	//execute 1st command;
 	bool  valid;
 	int size = reverse_input.size();
@@ -112,21 +120,22 @@ void parse (vector<string> &input)
 	{
 		if (reverse_input.at(i) == ";")
 		{
-			if (valid == true)
-			{
-				//always execute a command that follows a semicolon
-				execute(reverse_input.at(i - 1));
-				reverse_input.pop_back();
-				reverse_input.pop_back();
-			}
-					
+			//always execute a command that follows a semicolon
+			execute(reverse_input.at(i - 1));
+			reverse_input.pop_back();
+			reverse_input.pop_back();
 		}
 		else if (reverse_input.at(i) == "&&")
 		{
 			if (valid == true) //1st command executed properly
 			{
+				//check for exit command
+				// if (reverse_input.at(i - 1) == "exit")
+				// {
+				// 	exit(0);
+				// }
+				
 				//execute 2nd command
-				// cout << "failed" << endl;
 				execute(reverse_input.at(i - 1));
 			}
 			
@@ -140,6 +149,12 @@ void parse (vector<string> &input)
 		{
 			if (valid == false) //1st command did not execute 
 			{
+				//check for exit command
+				// if (reverse_input.at(i - 1) == "exit")
+				// {
+				// 	exit(0);
+				// }
+				
 				execute(reverse_input.at(i - 1));
 			}
 			
