@@ -199,12 +199,12 @@ int main()
 		cin.getline(userInput, 100);
 		
 		char userInput_no_comments[100];
-		if(userInput[0] == '\0')
-		{
-			// //keep looping
-			// cout <<"Keep looping" ;
-		}
-		else
+		
+		// if(userInput[0] == '\0')
+		// {
+		// 	//if the user enters, nothing will happen and keeps on looping for next input.
+		// }
+		if(userInput[0] != '\0')
 		{
 			//ignore everything after '#' (everything after '#' is a comment)
 			for (int i = 0; userInput[i] != '\0'; ++i)
