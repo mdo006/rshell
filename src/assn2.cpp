@@ -206,15 +206,17 @@ int main()
 		
 		//to hold the user input after the comments are removed
 		char userInput_no_comments[100];
-		
+//====================EXTRA CREDIT======================================		
 		//get hostname (extra credit)
 		char hostname[80];
 	    gethostname(hostname, sizeof hostname);
-	    
+	    //get username 
+	    char *name;
+	    name = getenv("USER");
+    	printf("%s@",name);
 		//print a command prompt (e.g. $)
 		printf("%s $ ", hostname);
-		// cout << "$ ";
-		
+//==========================================================		
 		//read in command as one line
 		cin.getline(userInput, 100);
 		
