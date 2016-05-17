@@ -7,12 +7,16 @@
 #include <sys/unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <stdlib.h>  
+#include <stdlib.h> 
+#include <errno.h>
+// #include<signal>
 
 using namespace std;
 
 bool execute (string pass)
 {
+	bool valid = true;
+	
 	char* test[80];
 	//valid = 1;
 	vector<string> command;
@@ -38,7 +42,8 @@ bool execute (string pass)
 		
 		if (temp == "exit")
 		{
-			cout << "exiting! (in parse)" << endl;
+			command.clear();
+			temp.clear();
 			exit(0);
 		}
 		
@@ -76,23 +81,36 @@ bool execute (string pass)
         if (execvp(test[0], test) == -1)
         {
         	perror("exec");
-        	command.clear();
-        	return false;
+        	exit(errno);
+        	valid = false;
+        }
+        else
+        {
+        	//successful completion
+        	exit(0);
         }
     }
     
-	if (pid > 0) //parent process
-    {
-        if (wait(0) == -1)
-        {
-        	perror("wait");
-        	command.clear();
-            return false;
-        }
-    }
+	int num = 0;
+	//tells parent to wait
+	wait(&num);
+	
+	int num2 = WEXITSTATUS(num);
+	
+	//if errno > 0, it did not work
+	if (num2 > 0)
+	{
+		valid = false;
+	}
+	
+	//successful completion
+	if (num2 == 0)
+	{
+		valid = true;
+	}
     
 	command.clear();
-	return true;
+	return valid;
 }
 
 void parse (vector<string> &input)
@@ -112,7 +130,6 @@ void parse (vector<string> &input)
 	{
 		input.clear();
 		reverse_input.clear();
-		cout << "exiting (exit is only input)" << endl;
 		exit(0);
 	}
 	
@@ -187,6 +204,9 @@ int main()
 		//command line inputted by user
 		char userInput[100];
 		
+		//to hold the user input after the comments are removed
+		char userInput_no_comments[100];
+		
 		//get hostname (extra credit)
 		char hostname[80];
 	    gethostname(hostname, sizeof hostname);
@@ -198,13 +218,7 @@ int main()
 		//read in command as one line
 		cin.getline(userInput, 100);
 		
-		char userInput_no_comments[100];
-		
-		// if(userInput[0] == '\0')
-		// {
-		// 	//if the user enters, nothing will happen and keeps on looping for next input.
-		// }
-		if(userInput[0] != '\0')
+		if(userInput[0] != '\0' || userInput[0] != ' ')
 		{
 			//ignore everything after '#' (everything after '#' is a comment)
 			for (int i = 0; userInput[i] != '\0'; ++i)
