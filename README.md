@@ -13,5 +13,4 @@ Our RSHELL program executes commands the same way a bash terminal would. It runs
 #Bugs/Limitations/Notes
 * does not handle redirective command such as ls -a && (does not ask for more input)
 * the exit command does not work properly when there is an invalid input in the command line (sometimes the user will have to type "exit" multiple times before the program exits
-* when only the "enter" key is hit with no other input, the program outputs an error message
 * does not handle incorrect connectors such as ";;" instead of ";" or "&" instead of "&&" or "|||" instead if "|", etc.
