@@ -17,8 +17,8 @@ bool execute (string pass)
 	//valid = 1;
 	vector<string> command;
 	string temp= "";
-	int j = 0;
-	int i = 0;
+	unsigned j = 0;
+	unsigned i = 0;
 	
 	while (i < pass.size())
 	{
@@ -49,7 +49,7 @@ bool execute (string pass)
 		i = j; 
 	}
 	
-	int k = 0;
+	unsigned k = 0;
 	
 	for(; k < command.size() ;++k)
     {
@@ -123,7 +123,7 @@ void parse (vector<string> &input)
 	reverse_input.pop_back();
 	
 	//parse this vector and execute accordingly
-	for (int i = reverse_input.size() - 1; i > -1; i = i - 2)
+	for (int i = reverse_input.size() - 1; i >= 0; i = i - 2)
 	{
 		if (reverse_input.at(i) == ";")
 		{
@@ -187,8 +187,12 @@ int main()
 		//command line inputted by user
 		char userInput[100];
 		
+		char hostname[80];
+	    gethostname(hostname, sizeof hostname);
+	    
 		//print a command prompt (e.g. $)
-		cout << "$ ";
+		printf("%s $ ", hostname);
+		// cout << "$ ";
 		//read in command as one line
 		cin.getline(userInput, 100);
 		
@@ -213,7 +217,7 @@ int main()
 		//FIX THIS LATER IF THERE IS TIME 
 		//DOES NOT ACCOUNT FOR JUST '&', JUST '|', OR MORE THAN TWO '&'s OR '|'s
 		//ALSO DOES NOT ACCOUNT FOR MORE THAN ONE ';' IN A ROW
-		for (int i = 0; userInput_no_comments[i] != '\0'; ++i)
+		for (unsigned i = 0; userInput_no_comments[i] != '\0'; ++i)
 		{
 			if (userInput_no_comments[i] == ';'|| userInput_no_comments[i] == '&' 
 				|| userInput_no_comments[i] == '|')
@@ -225,7 +229,7 @@ int main()
 		//NOW COMBIN & and & into && and | and | into ||
 		vector<string> vector_connectors;
 		
-		for (int i = 0; i < vector_connectors_separated.size(); ++i)
+		for (unsigned i = 0; i < vector_connectors_separated.size(); ++i)
 		{
 			if (vector_connectors_separated.at(i) == '&')
 			{
@@ -268,7 +272,7 @@ int main()
 		//convert the tokens from char* to string
 		vector<string> vector_tokens_str;
 	
-		for (int i = 0; i < vector_tokens.size(); ++i)
+		for (unsigned i = 0; i < vector_tokens.size(); ++i)
 		{
 			char* s = vector_tokens.at(i);
 			string str(s);
@@ -278,7 +282,7 @@ int main()
 		//put everything into one vector called input
 		vector<string> input;
 		
-		for (int i = 0; i < vector_tokens_str.size() - 1; ++i)
+		for (unsigned i = 0; i < vector_tokens_str.size() - 1; ++i)
 		{
 			input.push_back(vector_tokens_str.at(i));
 			input.push_back(vector_connectors.at(i));
