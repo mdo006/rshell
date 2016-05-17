@@ -13,7 +13,6 @@ using namespace std;
 
 bool execute (string pass)
 {
-	cout << pass << endl;
 	char* test[80];
 	//valid = 1;
 	vector<string> command;
@@ -61,11 +60,20 @@ bool execute (string pass)
     test[k] = '\0';
     
 	pid_t pid = fork();
-	// after fork(), if the pid comes out as -1 , then our command is valid.
- 
-    if (pid == 0) //child process
+	
+	//if pid is less than 0, then fork failed
+ 	if (pid < 0)
+ 	{
+ 		perror("Fork failed");
+ 		exit(-1);
+ 	}
+	
+	/*run execvp in the child because execvp automatically terminates all 
+	  processes after it executes*/
+ 	if (pid == 0) //child process
     {
-        if (execvp(test[0],test) == -1)
+    	//if execvp returns -1, the command did not execute
+        if (execvp(test[0], test) == -1)
         {
         	perror("exec");
         	command.clear();
@@ -184,18 +192,6 @@ int main()
 		//read in command as one line
 		cin.getline(userInput, 100);
 		
-		for (int i = 0; userInput[i] != '\0'; ++i)
-		{
-			if (userInput[i] == ' ' || userInput[i] == '\n')
-			{
-				cout << "$ ";
-				cin.getline(userInput,100);
-			}
-			else
-			{
-				break;
-			}
-		}
 		char userInput_no_comments[100];
 		
 		//ignore everything after '#' (everything after '#' is a comment)
