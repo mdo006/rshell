@@ -11,20 +11,21 @@
 
 using namespace std;
 
-bool execute (string &pass)
+bool execute (string pass)
 {
+	cout << pass << endl;
 	char* test[80];
 	//valid = 1;
 	vector<string> command;
-	string temp="";
+	string temp= "";
 	int j = 0;
 	int i = 0;
 	
-	while(i < pass.size())
+	while (i < pass.size())
 	{
-		for(j = i ; j < pass.size(); ++j)
+		for (j = i ; j < pass.size(); ++j)
 		{
-			if(pass.at(j) ==' ')
+			if (pass.at(j) ==' ')
 			{
 				//this means we are moving to next word.
 				++j;
@@ -36,11 +37,12 @@ bool execute (string &pass)
 			}
 		}
 		
-		if(temp == "exit")
+		if (temp == "exit")
 		{
-			cout << "exiting!" << endl;
+			cout << "exiting! (in parse)" << endl;
 			exit(0);
 		}
+		
 		command.push_back(temp);
 		temp.clear();
 		
@@ -60,19 +62,10 @@ bool execute (string &pass)
     
 	pid_t pid = fork();
 	// after fork(), if the pid comes out as -1 , then our command is valid.
-    //if(pid > 0)
-    //{
-        // if(wait(0) == -1)
-        // {
-        // 	perror("wait");
-        // 	command.clear();
-        //     return false;
-        // }
-    //}
-    
-    if(pid == 0)
+ 
+    if (pid == 0) //child process
     {
-        if(execvp(test[0],test) == -1)
+        if (execvp(test[0],test) == -1)
         {
         	perror("exec");
         	command.clear();
@@ -80,13 +73,16 @@ bool execute (string &pass)
         }
     }
     
-    if(wait(0) == -1)
+	if (pid > 0) //parent process
     {
-        perror("wait");
-        command.clear();
-        return false;
+        if (wait(0) == -1)
+        {
+        	perror("wait");
+        	command.clear();
+            return false;
+        }
     }
-	
+    
 	command.clear();
 	return true;
 }
@@ -106,6 +102,9 @@ void parse (vector<string> &input)
 	//if it is, exit the program
 	if (input.at(0) == "exit")
 	{
+		input.clear();
+		reverse_input.clear();
+		cout << "exiting (exit is only input)" << endl;
 		exit(0);
 	}
 	
@@ -120,6 +119,12 @@ void parse (vector<string> &input)
 	{
 		if (reverse_input.at(i) == ";")
 		{
+			//check for exit command
+			if (reverse_input.at(i - 1) == "exit")
+			{	
+				execute(reverse_input.at(i - 1));
+			}
+			
 			//always execute a command that follows a semicolon
 			execute(reverse_input.at(i - 1));
 			reverse_input.pop_back();
@@ -130,15 +135,14 @@ void parse (vector<string> &input)
 			if (valid == true) //1st command executed properly
 			{
 				//check for exit command
-				// if (reverse_input.at(i - 1) == "exit")
-				// {
-				// 	exit(0);
-				// }
+				if (reverse_input.at(i - 1) == "exit")
+				{	
+					execute(reverse_input.at(i - 1));
+				}
 				
 				//execute 2nd command
 				execute(reverse_input.at(i - 1));
 			}
-			
 			//if the 1st command is NOT valid, we do NOT want to execute the 2nd one
 			/*whether we execute or not, we still want to pop_back() 3 times to
 			  move to the next command*/
@@ -150,10 +154,10 @@ void parse (vector<string> &input)
 			if (valid == false) //1st command did not execute 
 			{
 				//check for exit command
-				// if (reverse_input.at(i - 1) == "exit")
-				// {
-				// 	exit(0);
-				// }
+				if (reverse_input.at(i - 1) == "exit")
+				{	
+					execute(reverse_input.at(i - 1));
+				}
 				
 				execute(reverse_input.at(i - 1));
 			}
@@ -174,12 +178,24 @@ int main()
 	{
 		//command line inputted by user
 		char userInput[100];
-	
+		
 		//print a command prompt (e.g. $)
 		cout << "$ ";
 		//read in command as one line
 		cin.getline(userInput, 100);
 		
+		for (int i = 0; userInput[i] != '\0'; ++i)
+		{
+			if (userInput[i] == ' ' || userInput[i] == '\n')
+			{
+				cout << "$ ";
+				cin.getline(userInput,100);
+			}
+			else
+			{
+				break;
+			}
+		}
 		char userInput_no_comments[100];
 		
 		//ignore everything after '#' (everything after '#' is a comment)
@@ -277,6 +293,14 @@ int main()
 		  vector_connectors is smalled than vector_tokens_str by one*/
 		int size = vector_tokens_str.size();
 		input.push_back(vector_tokens_str.at(size - 1));
+		
+		//clearing everyyything
+		vector_tokens_str.clear();
+		vector_connectors.clear();
+		vector_connectors_separated.clear();
+		// userInput = "";
+		//delete[] userInput;
+		// userInput_no_comments("");
 		
 		//run execute on commands
 		parse(input);
