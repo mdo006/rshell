@@ -14,4 +14,5 @@ Our RSHELL program executes commands the same way a bash terminal would. It runs
 * the cd command does not work
 * does not handle redirective command such as ls -a && (does not ask for more input)
 * does not handle incorrect connectors such as ";;" instead of ";" or "&" instead of "&&" or "|||" instead if "|", etc.
+* does not handle the case where a connector is part of the string being echoed, for example echo "hello;"; would echo "hello" instead of "hello;"
 * outputs an error message if the user enters multiple spaces 
