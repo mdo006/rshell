@@ -1,6 +1,6 @@
 COMPILE = g++
 FLAGS = -Wall -Werror -ansi -pedantic
-SRCDIR = src/assn2.cpp
+SRCDIR = src/assn3.cpp
 
 all:
 	mkdir -p bin
