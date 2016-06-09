@@ -25,7 +25,7 @@ void redirection2 (vector<char*> pass, char* filename)
 	//open output files
 	if((out = open(filename, O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR)) == -1)
 	{
-		perror("Error");
+		cout << "sh: " <<  "cannot open " << filename << ": No such file" << endl;
 		exit(0);
 	}
 	
@@ -53,7 +53,7 @@ void redirection1 (vector<char*> pass, char* filename)
 	//open output files
 	if((out = open(filename, O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR)) == -1)
 	{
-		perror("Error");
+		cout << "sh: " <<  "cannot open " << filename << ": No such file" << endl;
 		exit(0);
 	}
 	
@@ -140,7 +140,8 @@ bool execute (string pass)
     	//if execvp returns -1, the command did not execute
         if (execvp(test[0], test) == -1)
         {
-        	perror("exec");
+        	// perror("exec");
+        	cout << "sh: " << test[0] << ": not found" << endl;
         	exit(errno);
         	valid = false;
         }
@@ -186,7 +187,7 @@ void parse (vector<string> &input, int& flag)
 	bool  valid;
 	
 	//execute 1st command;
-	unsigned i = 0;
+	int i = 0;
 	
 	if (input.at(i) != "&&" || input.at(i) != "||" || input.at(i) != ";")
 	{
@@ -561,7 +562,7 @@ void token_input (vector<string> &token)
 {
 	int flag = 0; //executed
 	int connector_flag = 0;
-	unsigned i = 0;
+	int i = 0;
 
 	//vector of size 1 means input looks something like this: (echo A && echo B)
 	//we can treat this input the same way we did in assn 2
