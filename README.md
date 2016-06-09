@@ -7,7 +7,7 @@ Our RSHELL program executes commands the same way a bash terminal would. It runs
 #To Run
 * git clone https://github.com/mdo006/rshell.git
 * cd rshell
-* git checkout hw3
+* git checkout hw4
 * make
 * bin/rshell
 
