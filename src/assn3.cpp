@@ -10,10 +10,69 @@
 #include <stdlib.h> 
 #include <errno.h>
 #include <sys/stat.h>
+#include <fcntl.h>
+#include <string>
 
 using namespace std;
 
 void test_dir(string &);
+
+void redirection2 (vector<char*> pass, char* filename)
+{
+	int out;
+	char* test[80] = {pass.at(0), pass.at(1)};
+	
+	//open output files
+	if((out = open(filename, O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR)) == -1)
+	{
+		perror("Error");
+		exit(0);
+	}
+	
+	
+	//replace standard input with input file
+	// dup2(in, 0);
+	
+	//replace standard output with output file
+	dup2(out, 1);
+	
+	if(close(out)== -1)
+	{
+		perror("Failed to close");
+		exit(0);
+	}
+	
+	execvp(test[0], test);
+}
+
+void redirection1 (vector<char*> pass, char* filename)
+{
+	int out;
+	char* test[80] = {pass.at(0), pass.at(1)};
+	
+	//open output files
+	if((out = open(filename, O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR)) == -1)
+	{
+		perror("Error");
+		exit(0);
+	}
+	
+	
+	//replace standard input with input file
+	// dup2(in, 0);
+	
+	//replace standard output with output file
+	dup2(out, 1);
+	
+	if(close(out)== -1)
+	{
+		perror("Failed to close");
+		exit(0);
+	}
+
+	execvp(test[0], test);
+}
+
 bool execute (string pass)
 {
 	bool valid = true;
@@ -654,14 +713,213 @@ void test_dir(string &pass)
 	return;
 }
 
+//this is to seperate the char string into vector of commands
+void separate(char* userInput, bool &piping,vector<char*> &vector_tokens )
+{
+	char* tokens; //command and its arguments
+	char delimiters[] = " ";
+	tokens = strtok(userInput, delimiters);
+	
+	while (tokens != NULL)
+	{
+		//remove first whitespace in token
+		if (tokens[0] == ' ')
+		{
+			++tokens; //go to next character (ignore 1st white space)
+		}
+		
+		vector_tokens.push_back(tokens);
+		tokens = strtok(NULL, delimiters);
+	}
+	
+	// const p = '|';
+	// for(int i =0; i < vector_tokens.size() ; ++i)
+	// {
+	// 	cout << vector_tokens.at(i) << endl;
+	// }
+	piping = true;
+}
+
+
+
+void run(vector<char*> vector_pipe)//, int previous,int current)
+{
+	char * output_dir2 = (char*)">>";
+	char* output_dir = (char*)">";
+	char* input_dir = (char*)"<";
+	char* pipe1 = (char*)"|";
+	// bool flag = true;
+	int curr[2];
+	//list before redirectory
+	vector<char*> list;
+	return;
+	while(!vector_pipe.empty())
+	{
+		if(strcmp(vector_pipe.front(),input_dir) ==0)
+		{
+			char * filename;
+			// list.push_back(vector_pipe.front());
+			vector_pipe.erase(vector_pipe.begin());
+			// open_file(vector_pipe.front());
+			filename = vector_pipe.front();
+			if(vector_pipe.size() != 1)
+			{
+				vector_pipe.erase(vector_pipe.begin());
+				//check if there is more folder name 
+				if(strcmp(vector_pipe.front(),input_dir) !=0 && strcmp(vector_pipe.front(),output_dir) !=0  &&
+				  strcmp(vector_pipe.front(),output_dir2) !=0 && strcmp(vector_pipe.front(),pipe1) !=0 )
+				{
+					//this means there is more filename given.
+					cout << "Error: More than one filename has been passed in"<< endl;// << endl;
+					return;
+				}
+			}
+			pid_t pid = fork();
+			if (pid < 0)
+		 	{
+		 		perror("Fork failed");
+		 		exit(0);
+		 	}
+		 	else if(pid == 0 )
+		 	{
+		 		int fd;
+				if((fd = open(filename,O_RDONLY )) == -1)
+				{
+					perror("Error");
+					exit(0);
+				}
+				if(close(fd)== -1)
+				{
+					perror("Failed to close");
+					exit(0);
+				}
+				// cout <<"pid == 0" << endl;
+				return;
+		 	}
+		 	else if(pid > 0)
+		 	{
+			 	int status = 0;
+				waitpid(-1, &status,  0);
+				if( status == -1)
+				{
+					perror("wait");
+				}
+				else if(status > 1) 
+				{
+					return;
+				}
+		 	
+		 	}
+			// if(pipe(prev) == -1)
+			// {
+			// 	perror("Pipe: "); 
+			// 	return;
+			// }
+
+			//start reading 
+			// if (fork() == 0)
+			// {
+			    // child
+			
+			 //   dup2(fd, 1);   // make stdout go to file
+			 //   dup2(fd, 2);   // make stderr go to file - you may choose to not do this
+			 //                  // or perhaps send stderr to another file
+				// if(close(fd) == -1)
+				// {
+				// 	perror("Not closed");
+				// }
+			    // close(fd);     // fd no longer needed - the dup'ed handles are sufficient
+			
+			    // exec();
+			// }
+		}
+		//if > then open 
+		else if(strcmp(vector_pipe.front(),output_dir) == 0)
+		{
+			char * filename;
+			// list.push_back(vector_pipe.front());
+			vector_pipe.erase(vector_pipe.begin());
+			// open_file(vector_pipe.front());
+			filename = vector_pipe.front();
+			if(vector_pipe.size() != 1)
+			{
+				vector_pipe.erase(vector_pipe.begin());
+				//check if there is more folder name 
+				if(strcmp(vector_pipe.front(),input_dir) !=0 && strcmp(vector_pipe.front(),output_dir) !=0  &&
+				  strcmp(vector_pipe.front(),output_dir2) !=0 && strcmp(vector_pipe.front(),pipe1) !=0 )
+				{
+					//this means there is more filename given.
+					cout << "Error: More than one filename has been passed in"<< endl;// << endl;
+					return;
+				}
+			}
+		    
+			// //before opening the file, make sure the prev is closed
+			cout << "output 1" << endl;
+			redirection1(list, filename);
+		}
+		else if(strcmp(vector_pipe.front(),output_dir2) ==0)
+		{
+			char * filename;
+			// list.push_back(vector_pipe.front());
+			vector_pipe.erase(vector_pipe.begin());
+			// open_file(vector_pipe.front());
+			filename = vector_pipe.front();
+			if(vector_pipe.size() != 1)
+			{
+				vector_pipe.erase(vector_pipe.begin());
+				//check if there is more folder name 
+				if(strcmp(vector_pipe.front(),input_dir) !=0 && strcmp(vector_pipe.front(),output_dir) !=0  &&
+				  strcmp(vector_pipe.front(),output_dir2) !=0 && strcmp(vector_pipe.front(),pipe1) !=0 )
+				{
+					//this means there is more filename given.
+					cout << "Error: More than one filename has been passed in"<< endl;// << endl;
+					return;
+				}
+			}
+			// }
+			// //before opening the file, make sure the prev is closed
+			// if(close(prev[0]) == -1)
+			// {
+			//     //if it returns -1, then it means prev[0] is still open
+			//     perror("Not Closed");
+			//     return;
+			cout << "output2" << endl;
+			redirection2(list, filename);
+		}
+		else if(strcmp(vector_pipe.front(),pipe1) ==0)
+		{
+			vector_pipe.erase(vector_pipe.begin());
+			if(pipe(curr) == -1)
+			{
+				perror("Pipe");
+			}
+			cout << "pipe" << endl;
+		}
+		else
+		{
+			list.push_back(vector_pipe.front());
+			vector_pipe.erase(vector_pipe.begin());
+		}
+	}
+	
+	// for(int h = 0; h < list.size(); ++h)
+	// {
+	//     cout << list.at(h)<<endl;
+	// }
+	
+	return;
+}
 
 int main()
 {
 	//loop until the user exits
-	while (1)
+	char userInput[100];
+	while (strcmp(userInput,"exit")!= 0 )
 	{
 		//command line inputted by user
-		char userInput[100];
+		// char userInput[100];
+		userInput[0] = '\0';
 		
 		//to hold the user input after the comments are removed
 		char userInput_no_comments[100];
@@ -678,60 +936,91 @@ int main()
 //==========================================================		
 		//read in command as one line
 		cin.getline(userInput, 100);
-		
-		//checks for if the user just presses ENTER
+		// cout << userInput << endl;
+		bool piping = false;
+		string userInput2(userInput);
+		vector<char*> vector_pipe;
+		//first we need to separate the user input and check for pipe/redirect
 		if (userInput[0] != '\0')
 		{
-			//ignore everything after '#' (everything after '#' is a comment)
-			for (int i = 0; userInput[i] != '\0'; ++i)
-			{
-				if (userInput[i] == '#')
-				{
-					break;
-				}
-				
-				userInput_no_comments[i] = userInput[i];
-				userInput_no_comments[i + 1] = '\0';
-			}
-			
-			//use strtok to separate input into "tokens"
-			//token by parentheses to group them
-			char* tokens; //command and its arguments
-			char delimiters[] = "()";
-			tokens = strtok(userInput_no_comments, delimiters);
-			
-			//stores all the commands and its arguments as separate "tokens"
-			vector<char*> vector_tokens;
-			
-			while (tokens != NULL)
-			{
-				//remove first whitespace in token
-				if (tokens[0] == ' ')
-				{
-					++tokens; //go to next character (ignore 1st white space)
-				}
-				
-				vector_tokens.push_back(tokens);
-				tokens = strtok(NULL, delimiters);
-			}
-			
-			//convert the tokens from char* to string
-			vector<string> vector_tokens_str;
-		
-			for (unsigned i = 0; i < vector_tokens.size(); ++i)
-			{
-				char* s = vector_tokens.at(i);
-				string str(s);
-				
-				if (str != "")
-				{
-					vector_tokens_str.push_back(str);
-				}
-			}
-			
-			//call function
-			token_input(vector_tokens_str);
+			separate(userInput, piping, vector_pipe);
+			// if(piping == true)
+			// {
+			// 	cout << "heo"<< endl;
+			// }
 		}
+		
+		if(piping == true)
+		{
+			/*
+			in here now i will call a run function that will check 
+			< - input redirection
+			> - output redirection
+				this will overwrite everything that that was in output file
+			>> - output redirection
+				this will add onto whatever was in output file
+			*/
+			const char* temp = userInput2.c_str();
+			system(temp);
+			run(vector_pipe);//,0,0);
+		//checks for if the user just presses ENTER
+		}
+		else
+		{
+			if (userInput[0] != '\0')
+			{
+				//ignore everything after '#' (everything after '#' is a comment)
+				for (int i = 0; userInput[i] != '\0'; ++i)
+				{
+					if (userInput[i] == '#')
+					{
+						break;
+					}
+					
+					userInput_no_comments[i] = userInput[i];
+					userInput_no_comments[i + 1] = '\0';
+				}
+				
+				//use strtok to separate input into "tokens"
+				//token by parentheses to group them
+				char* tokens; //command and its arguments
+				char delimiters[] = "()";
+				tokens = strtok(userInput_no_comments, delimiters);
+				
+				//stores all the commands and its arguments as separate "tokens"
+				vector<char*> vector_tokens;
+				
+				while (tokens != NULL)
+				{
+					//remove first whitespace in token
+					if (tokens[0] == ' ')
+					{
+						++tokens; //go to next character (ignore 1st white space)
+					}
+					
+					vector_tokens.push_back(tokens);
+					tokens = strtok(NULL, delimiters);
+				}
+				
+				//convert the tokens from char* to string
+				vector<string> vector_tokens_str;
+			
+				for (unsigned i = 0; i < vector_tokens.size(); ++i)
+				{
+					char* s = vector_tokens.at(i);
+					string str(s);
+					
+					if (str != "")
+					{
+						vector_tokens_str.push_back(str);
+					}
+				}
+				
+				//call function
+				token_input(vector_tokens_str);
+			}
+		}
+		
 	}
 	
 	return 0;
